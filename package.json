@@ -1,0 +1,29 @@
+{
+  "name": "vuepress-blog",
+  "version": "1.0.0",
+  "description": "前端攻城喵's blog",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "docs:build": "vuepress build src",
+    "docs:clean-dev": "vuepress dev src --clean-cache",
+    "docs:dev": "vuepress dev src",
+    "docs:update-package": "pnpm dlx vp-update"
+  },
+  "devDependencies": {
+    "@moefy-canvas/theme-popper": "^0.5.2",
+    "@moefy-canvas/theme-sakura": "^0.5.2",
+    "@vuepress/client": "2.0.0-beta.67",
+    "@vuepress/core": "2.0.0-beta.67",
+    "@vuepress/utils": "2.0.0-beta.67",
+    "canvas-nest.js": "^2.0.4",
+    "vue": "^3.3.4",
+    "vue-router": "^4.0.13",
+    "vuepress": "2.0.0-beta.67",
+    "vuepress-plugin-search-pro": "2.0.0-beta.239",
+    "vuepress-theme-hope": "2.0.0-beta.238"
+  },
+  "dependencies": {
+    "vuepress-plugin-oh-my-live2d": "^0.6.0"
+  }
+}

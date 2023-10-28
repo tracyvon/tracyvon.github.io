@@ -1,0 +1,18 @@
+// place your custom styles here
+.vp-nav-logo {
+  border-radius: var(--navbar-line-height);
+  object-fit: cover;
+  width: var(--navbar-line-height);
+}
+
+.vp-blogger-avatar {
+  object-fit: cover;
+  width: 8rem;
+  height: 8rem;
+}
+
+// 隐藏live2d控制面板
+#oml-controls,
+#oml-levitated-btn {
+  display: none !important;
+}
