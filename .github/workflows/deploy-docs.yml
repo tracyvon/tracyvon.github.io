@@ -12,9 +12,11 @@ permissions:
 
 jobs:
   deploy-gh-pages:
+    # 服务器环境：最新版 Ubuntu
     runs-on: ubuntu-latest
 
     steps:
+      # 拉取代码
       - name: Checkout
         uses: actions/checkout@v3
         with:
@@ -48,6 +50,9 @@ jobs:
       - name: 部署文档到 GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          # 这是文档部署到的分支名称
+          # 部署到 gh-pages 分支
           branch: gh-pages
+          # 部署目录为 VuePress 的默认输出目录
           folder: src/.vuepress/dist
+          # @see https://docs.github.com/cn/actions/reference/authentication-in-a-workflow#about-the-github_token-secret
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
