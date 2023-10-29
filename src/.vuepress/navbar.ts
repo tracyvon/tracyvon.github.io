@@ -8,6 +8,7 @@ export default navbar([
     children: [
       { text: "Csharp", link: "/posts/csharp" },
       { text: "Frontend", link: "/posts/frontend" },
+      { text: "Vuepress", link: "/posts/vuepress" },
     ],
   },
 ]);
