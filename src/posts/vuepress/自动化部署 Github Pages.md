@@ -8,7 +8,7 @@ tag:
   - Github Pages
 ---
 
-# 自动化部署 Github Pages.md
+# 自动化部署 Github Pages
 
 - 使用的是默认的构建输出目录 (.vuepress/dist)
 - `config.ts` 里的 `base` 设置为 `/`

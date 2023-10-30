@@ -23,9 +23,9 @@ export default defineUserConfig({
     }),
     canvasNest(),
     ohmylive2dPlugin({
-      source: "/white-cat",
+      source: "/tororo",
       models: {
-        path: "/model.json",
+        path: "/tororo.model3.json",
       },
       sayHello: false,
       tips: false,
