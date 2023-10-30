@@ -1,4 +1,6 @@
-<template></template>
+<template>
+  <ClientOnly></ClientOnly>
+</template>
 
 <script setup>
 // 在这里导入 CanvasNest，那构建时会报 `window is not defined` 异常
