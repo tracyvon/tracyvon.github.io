@@ -1,7 +1,6 @@
 import { defineClientConfig } from "@vuepress/client";
-// import CanvasNest from "canvas-nest.js";
 import { onMounted, onUnmounted } from "vue";
-// import CanvasNest from "./CanvasNest.vue";
+import CanvasNest from "./CanvasNest.vue";
 
 const useCanvasNest = () => {
   const config = {
@@ -29,7 +28,7 @@ const useCanvasNest = () => {
 
 export default defineClientConfig({
   setup() {
-    useCanvasNest();
+    // useCanvasNest();
   },
-  // rootComponents: [CanvasNest],
+  rootComponents: [CanvasNest],
 });

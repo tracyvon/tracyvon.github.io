@@ -23,7 +23,7 @@ export default defineUserConfig({
     }),
     canvasNest(),
     ohmylive2dPlugin({
-      source: "./white-cat",
+      source: "/white-cat",
       models: {
         path: "/model.json",
       },

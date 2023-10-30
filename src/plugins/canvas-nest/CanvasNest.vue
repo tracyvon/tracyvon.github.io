@@ -1,9 +1,8 @@
-<template>
-  <ClientOnly></ClientOnly>
-</template>
+<template></template>
 
 <script setup>
-import CanvasNest from "canvas-nest.js";
+// 在这里导入 CanvasNest，那构建时会报 `window is not defined` 异常
+// import CanvasNest from "canvas-nest.js";
 import { onMounted, onUnmounted } from "vue";
 
 const config = {
@@ -15,7 +14,12 @@ const config = {
 let cn;
 
 onMounted(() => {
-  cn = new CanvasNest(document.body, config);
+  // see https://v2.vuepress.vuejs.org/zh/guide/#%E5%AE%83%E6%98%AF%E5%A6%82%E4%BD%95%E5%B7%A5%E4%BD%9C%E7%9A%84
+  // INFO: 打包构建时会创建 SSR 版本，导致在 Node 环境下报 `window is not defined`，通过 `import then` 方式确保 `canvas-next.js` 加载完成后再渲染
+  import("canvas-nest.js").then((module) => {
+    const CanvasNest = module.default;
+    cn = new CanvasNest(document.body, config);
+  });
 });
 
 onUnmounted(() => {
@@ -23,17 +27,4 @@ onUnmounted(() => {
 });
 </script>
 
-<style>
-#canvasNext {
-  display: block;
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 100%;
-  overflow: hidden;
-  pointer-events: none;
-  z-index: -2;
-  opacity: 0.7;
-}
-</style>
+<style></style>

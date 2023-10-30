@@ -22,17 +22,19 @@ const Effect = defineComponent({
   name: "Effect",
   setup() {
     onMounted(() => {
-      const el = document.getElementById("moefy-canvas");
+      const el1 = document.getElementById("moefy-canvas1");
       const popper = new Popper(popperConfig, canvasOptions);
       // @ts-ignore
-      popper.mount(el);
+      popper.mount(el1);
 
+      const el2 = document.getElementById("moefy-canvas2");
       const sakura = new Sakura(sakuraConfig, canvasOptions);
       // @ts-ignore
-      sakura.mount(el);
+      sakura.mount(el2);
     });
-    const el = h("canvas", { id: "moefy-canvas" });
-    return () => el;
+    const el1 = h("canvas", { id: "moefy-canvas1" });
+    const el2 = h("canvas", { id: "moefy-canvas2" });
+    return () => h("div", [el1, el2]);
   },
 });
 
