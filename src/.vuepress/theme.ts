@@ -21,27 +21,51 @@ export default hopeTheme({
 
     // all features are enabled for demo, only preserve features you need here
     mdEnhance: {
+      // 支持 chart 图表
+      // chart: true,
+      // 支持代码案例
+      // demo: true,
+      // 支持 flowchart 图表
+      // flowchart: true,
+      // Mermaid 图表
+      // mermaid: true,
+      // 导入文件
+      // include: true,
+      // 交互演示
+      // playground: {
+      //   presets: ["ts", "vue"],
+      // },
+      // Tex 语法
+      // katex: true,
+      // 上下角标
+      // sub: true,
+      // sup: true,
+      // 幻灯片
+      // revealjs: {
+      //   plugins: ["highlight", "math", "search", "notes", "zoom"],
+      // },
+      // Vue 交互演示
+      // vuePlayground: true,
+      // gfm: true,
+      // vPre: true,
+
+      // 自定义对齐
       align: true,
+      // 属性支持
       attrs: true,
-      chart: true,
+      // 代码块分组
       codetabs: true,
-      demo: true,
+      // 支持 echarts 图表
       echarts: true,
+      // 标记
+      mark: true,
+      // 选项卡
+      tabs: true,
+      // 图片
       figure: true,
-      flowchart: true,
-      gfm: true,
       imgLazyload: true,
       imgSize: true,
-      include: true,
-      katex: true,
-      mark: true,
-      mermaid: true,
-      playground: {
-        presets: ["ts", "vue"],
-      },
-      revealjs: {
-        plugins: ["highlight", "math", "search", "notes", "zoom"],
-      },
+      // 样式化
       stylize: [
         {
           matcher: "Recommended",
@@ -55,11 +79,6 @@ export default hopeTheme({
           },
         },
       ],
-      sub: true,
-      sup: true,
-      tabs: true,
-      vPre: true,
-      vuePlayground: true,
     },
 
     /* components: {
