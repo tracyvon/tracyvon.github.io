@@ -15,7 +15,9 @@ tag:
 - 使用 `pnpm` 作为包管理器
 - 部署后通过 `https://<username>.github.io/` 访问
 
-## 在 `Github` 创建新 repository，此仓库对应 `vuepress` 的源码，项目名为 `<username>.github.io`
+## 在 `Github` 创建新 repository
+
+此仓库对应 `vuepress` 的源码，项目名为 `<username>.github.io`
 
 > 仓库必须设置为 `Pubilc`
 

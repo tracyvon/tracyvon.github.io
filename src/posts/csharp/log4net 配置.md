@@ -4,9 +4,9 @@ date: 2018-11-16
 category:
   - C#
 tag:
-  - log4net
+  - Log4net
   - WebService
-  - wcf
+  - WCF
 ---
 
 # log4net 配置

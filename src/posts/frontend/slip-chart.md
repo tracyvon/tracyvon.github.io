@@ -4,7 +4,7 @@ date: 2023-10-24
 category:
   - FE
 tag:
-  - echarts
+  - ECharts
 ---
 
 # 趋势图

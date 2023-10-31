@@ -5,7 +5,7 @@ const config = {
     medias: {},
     roundAvatar: true,
     articlePerPage: 5,
-    articleInfo: ["Author", "Date", "PageView", "Category", "Tag", "ReadingTime"],
+    articleInfo: ["Date", "PageView", "Category", "Tag", "ReadingTime"],
   },
 
   encrypt: {
