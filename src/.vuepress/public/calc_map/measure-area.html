@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width" />
+    <link rel="stylesheet" href="./index.css" type="text/css" />
+    <title>面积测量</title>
+  </head>
+  <body>
+    <div id="container"></div>
+    <!-- 测量工具 -->
+    <div class="tools-card">
+      <ul class="tools-btn">
+        <li><input id="reset" type="button" class="btn" value="清除" /></li>
+        <li><input id="redo" type="button" class="btn" value="撤销" /></li>
+        <li><input id="calcArea" type="button" class="btn" value="确定区域" /></li>
+      </ul>
+    </div>
+
+    <script src="https://webapi.amap.com/maps?v=2.0&key=3a891c26c4aa4ba7f9e2567ae9dbf1de&plugin=AMap.PolylineEditor"></script>
+    <script type="text/javascript">
+      let map = null;
+      let operationHistoryList = [];
+      let currentPolygon = null;
+
+      // start 命令模式实现撤销
+      const directives = {
+        createPolygon: function (id) {
+          // console.log("创建多边形类", currentPolygon);
+          const polygon = new DrawPolygon(map, id);
+          currentPolygon = polygon;
+        },
+        addPoint: function (lngLat) {
+          // console.log("增加标注点", lngLat);
+          currentPolygon?.addMarker(lngLat);
+        },
+        calcArea: function () {
+          // console.log("确定面积并计算");
+          currentPolygon.addPolygon();
+        },
+      };
+      const markCommand = function (receiver, command) {
+        return function (...args) {
+          receiver[command].apply(this, arguments);
+        };
+      };
+      const executeCommand = function (directive, data) {
+        const command = markCommand(directives, directive);
+        if (command) {
+          command(data);
+          operationHistoryList.push({ command, data: currentPolygon.getData() });
+        }
+        console.log(operationHistoryList);
+      };
+      // end 命令模式实现撤销
+
+      // 获取当前经纬度
+      if ("geolocation" in navigator) {
+        /* geolocation 存在 */
+        navigator.geolocation.getCurrentPosition(async (position) => {
+          const { latitude, longitude } = position.coords;
+          console.log("当前经纬度：", latitude, longitude);
+          await initMap([longitude, latitude]);
+        });
+      } else {
+        /* geolocation 不存在 */
+        alert("当前浏览器不支持使用地理位置 API");
+      }
+
+      async function initMap(coords) {
+        map = new AMap.Map("container", {
+          center: coords,
+          viewMode: "2D",
+          layers: [new AMap.TileLayer.Satellite()],
+          zoom: 15,
+        });
+        // 初始化地图后默认执行创建画多边形实体
+        executeCommand("createPolygon");
+
+        map.on("click", (e) => {
+          const lngLat = [e.lnglat.getLng(), e.lnglat.getLat()];
+          executeCommand("addPoint", lngLat);
+        });
+      }
+
+      document.getElementById("reset").onclick = function () {
+        operationHistoryList = [];
+        // 重置后再初始化实体
+        executeCommand("createPolygon");
+        map.clearMap();
+      };
+
+      document.getElementById("redo").onclick = function () {
+        // 清空画布
+        map.clearMap();
+
+        // 只有一个操作即初始化实体的步骤
+        if (operationHistoryList.length === 1) {
+          return;
+        }
+
+        // 先剔除最后一步操作
+        operationHistoryList.pop();
+        const len = operationHistoryList.length,
+          lastOperation = operationHistoryList[len - 1],
+          lastOperationData = lastOperation?.data || {};
+        // 形成一个多边形至少要5个步骤（1个创建实体命令+3个创建标注点命令和1个计算面积命令）
+        if (len > 4 && lastOperationData?.isCalcArea) {
+          // 已计算面积会重新创建新实体，需要再剔除多一次步骤
+          operationHistoryList.pop();
+        }
+        // 按执行历史记录重新执行命令
+        for (let index = 0; index < operationHistoryList.length; index++) {
+          const comm = operationHistoryList[index];
+          if (!comm) {
+            break;
+          }
+          const { command, data: initData } = comm;
+          if (initData?.lastMarker) {
+            const lastMarker = initData.lastMarker;
+            const point = lastMarker.getCenter();
+            // console.log(lastMarker);
+            command(point);
+          } else {
+            command(initData?.id);
+          }
+        }
+      };
+
+      document.getElementById("calcArea").onclick = function () {
+        // 先执行计算面积
+        const { isPolygon, isCalcArea } = currentPolygon?.canCalcArea();
+        if (!isPolygon) {
+          alert("至少需要三个标注点，请先添加");
+          return;
+        }
+        // TODO
+        if (isCalcArea) {
+          alert("当前区域已计算好面积，请勿重复计算");
+          return;
+        }
+        executeCommand("calcArea");
+        // 再执行创建新实体
+        executeCommand("createPolygon");
+      };
+
+      // 画多边形区域类
+      class DrawPolygon {
+        map = null;
+        id = null;
+        #markerList = [];
+        #lngLatList = [];
+        #textList = [];
+        #pathLine = [];
+        #areaText = [];
+        #lastMarker = undefined;
+        #isCalcArea = false;
+
+        constructor(map, id) {
+          this.map = map;
+          this.id = id || getUuid();
+        }
+
+        getData() {
+          return {
+            id: this.id,
+            markerList: [...this.#markerList],
+            lngLatList: [...this.#lngLatList],
+            textList: [...this.#textList],
+            pathLine: [...this.#pathLine],
+            areaText: [...this.#areaText],
+            lastMarker: this.#lastMarker,
+            isCalcArea: this.#isCalcArea,
+          };
+        }
+
+        /**
+         * 判断当前的标注点能否组成图形。
+         *
+         * @name isCanSetPolygon
+         * @function
+         * @param
+         * @returns {boolean}
+         * @memberof DrawPolygon
+         * @instance
+         */
+        isCanSetPolygon() {
+          return this.#markerList.length > 2;
+        }
+
+        /**
+         * 获取第一个标注点。
+         *
+         * @name getFirstMarker
+         * @function
+         * @param
+         * @returns
+         * @memberof DrawPolygon
+         * @instance
+         */
+        getFirstMarker() {
+          return this.#markerList[0];
+        }
+
+        /**
+         * 鼠标点击时生成标注点。
+         *
+         * @name addMarker
+         * @function
+         * @param lngLat 经纬度
+         * @returns
+         * @memberof DrawPolygon
+         * @instance
+         */
+        addMarker(lngLat) {
+          // console.log("选中的经纬度", lngLat);
+
+          // 创建圆形标注点
+          const circleMarker = new AMap.CircleMarker({
+            center: lngLat,
+            radius: 6,
+            strokeColor: "#fff",
+            strokeWeight: 2,
+            strokeOpacity: 0.5,
+            fillColor: "#3366FF",
+            fillOpacity: 1,
+            zIndex: 10,
+            bubble: true,
+            cursor: "pointer",
+            clickable: true,
+          });
+          this.map.add(circleMarker);
+          this.#markerList.push(circleMarker);
+          this.#lngLatList.push(lngLat);
+
+          // 满足至少三个标注点且增加新的标注点时需要删除已存在的虚线
+          if (this.isCanSetPolygon() && this.#markerList.length === this.#pathLine.length + 1) {
+            this.removeLine();
+          }
+          if (this.#lastMarker !== undefined) {
+            this.addLine(this.#lastMarker, circleMarker);
+          } else {
+            this.#lastMarker = circleMarker;
+          }
+          // 三点确定一个面，满足时补充最后的虚线
+          if (this.isCanSetPolygon()) {
+            this.addLine(this.#lastMarker, this.getFirstMarker(), "dashed");
+          }
+        }
+
+        /**
+         * 满足两个点时生成折线。
+         *
+         * @private
+         * @name addLine
+         * @function
+         * @param {Marker} last 上个标注点
+         * @param {AMap.CircleMarker} current 当前最新的标注点
+         * @param {LineStyle} lineStyle 折线样式，已确定的线是直线，待定的线是虚线
+         * @returns
+         * @memberof DrawPolygon
+         * @instance
+         */
+        addLine(last, current, lineStyle = "solid") {
+          const p1 = last.getCenter();
+          const p2 = current.getCenter();
+
+          if (!p1 && !p2) {
+            return;
+          }
+
+          const path = [p1, p2];
+
+          const line = new AMap.Polyline({
+            path: path,
+            borderWidth: 2,
+            strokeOpacity: 1,
+            strokeWeight: 3,
+            strokeColor: lineStyle === "solid" ? "#3366FF" : "#00D3FC",
+            strokeStyle: lineStyle,
+            strokeDasharray: [10, 5],
+            lineJoin: "round",
+            lineCap: "round",
+            zIndex: 5,
+          });
+
+          // 计算两点距离
+          const text = new AMap.Text({
+            text: "",
+            style: { "background-color": "#29b6f6", "border-color": "#e1f5fe", "font-size": "12px" },
+          });
+          const textPos = p1.divideBy(2).add(p2.divideBy(2));
+          const distance = Math.round(p1.distance(p2));
+          text.setText(distance + "米");
+          text.setPosition(textPos);
+          text.setMap(this.map);
+          this.#textList.push(text);
+
+          this.map.add(line);
+          this.#pathLine.push(line);
+          lineStyle === "solid" && (this.#lastMarker = current);
+        }
+
+        removeLine() {
+          this.map.remove(this.#pathLine.pop());
+          this.map.remove(this.#textList.pop());
+        }
+
+        canCalcArea() {
+          return {
+            isPolygon: this.isCanSetPolygon(),
+            isCalcArea: this.#isCalcArea,
+          };
+        }
+
+        addPolygon() {
+          if (!this.isCanSetPolygon()) {
+            return;
+          }
+
+          let polygon = new AMap.Polygon({
+            path: this.#lngLatList,
+            fillColor: "#00D3FC",
+            fillOpacity: 0.5,
+            strokeOpacity: 1,
+            strokeColor: "#3366FF",
+            strokeWeight: 3,
+            zIndex: 5,
+          });
+          this.map.add(polygon);
+          this.#areaText.push(polygon);
+
+          const area = AMap.GeometryUtil.ringArea(this.#lngLatList);
+
+          const bounds = polygon.getBounds();
+          const position = bounds.getCenter();
+          const text = new AMap.Text({
+            position: position,
+            text: area.toFixed(2) + "平方米",
+            offset: new AMap.Pixel(-20, -20),
+          });
+          this.map.add(text);
+          this.#areaText.push(text);
+
+          this.#isCalcArea = true;
+          // console.log(area);
+        }
+      }
+
+      function getUuid() {
+        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+          const r = (Math.random() * 16) | 0;
+          const v = c === "x" ? r : (r & 0x3) | 0x8;
+          return v.toString(16);
+        });
+      }
+    </script>
+  </body>
+</html>
