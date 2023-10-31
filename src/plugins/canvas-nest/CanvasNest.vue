@@ -1,4 +1,5 @@
 <template>
+  <!-- see https://v2.vuepress.vuejs.org/zh/advanced/cookbook/usage-of-client-config.html -->
   <ClientOnly></ClientOnly>
 </template>
 
